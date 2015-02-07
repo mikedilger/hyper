@@ -1,4 +1,5 @@
 //! HTTP RequestUris
+use url;
 use url::Url;
 
 /// The Request-URI of a Request's StartLine.
@@ -21,8 +22,8 @@ pub enum RequestUri {
     /// The most common request target, an absolute path and optional query.
     ///
     /// For example, the line `GET /where?q=now HTTP/1.1` would parse the URI
-    /// as `AbsolutePath("/where?q=now".to_string())`.
-    AbsolutePath(String),
+    /// component `/where?q=now` as the AbsolutePath
+    AbsolutePath(PathQueryFragment),
 
     /// An absolute URI. Used in conjunction with proxies.
     ///
@@ -45,3 +46,25 @@ pub enum RequestUri {
     Star,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+/// An absolute URL path as seen by a server, such as /where?q=now
+pub struct PathQueryFragment {
+    /// The path component, as a String
+    pub path: Vec<String>,
+    /// The query component, optional, as a String.  Use query_pairs() method if it is
+    /// application/x-www-form-urlencoded to break it down into a vector of (key,value)
+    /// pairs.
+    pub query: Option<String>,
+    /// The HTTP RFC does not identify a fragment here, but it is generally parsed
+    // in practice and discarded in case it exists
+    pub fragment: Option<String>
+}
+
+impl PathQueryFragment {
+    /// Parse the query string, if any, as `application/x-www-form-urlencoded`
+    /// and return a vector of (key, value) pairs.
+    #[inline]
+    pub fn query_pairs(&self) -> Option<Vec<(String, String)>> {
+        self.query.as_ref().map(|query| url::form_urlencoded::parse(query.as_bytes()))
+    }
+}

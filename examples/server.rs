@@ -21,8 +21,8 @@ macro_rules! try_return(
 
 fn echo(mut req: Request, mut res: Response) {
     match req.uri {
-        AbsolutePath(ref path) => match (&req.method, &path[]) {
-            (&Get, "/") | (&Get, "/echo") => {
+        AbsolutePath(ref pqf) => match (&req.method, &pqf.path[0][]) {
+            (&Get, "") | (&Get, "echo") => {
                 let out = b"Try POST /echo";
 
                 res.headers_mut().set(ContentLength(out.len() as u64));
@@ -31,7 +31,7 @@ fn echo(mut req: Request, mut res: Response) {
                 try_return!(res.end());
                 return;
             },
-            (&Post, "/echo") => (), // fall through, fighting mutable borrows
+            (&Post, "echo") => (), // fall through, fighting mutable borrows
             _ => {
                 *res.status_mut() = hyper::NotFound;
                 try_return!(res.start().and_then(|res| res.end()));

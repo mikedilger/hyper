@@ -7,6 +7,7 @@ use std::num::from_u16;
 use std::str;
 use std::string::CowString;
 
+use url;
 use url::Url;
 use url::ParseError as UrlError;
 
@@ -14,6 +15,7 @@ use method;
 use status::StatusCode;
 use uri;
 use uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
+use uri::PathQueryFragment;
 use version::HttpVersion;
 use version::HttpVersion::{Http09, Http10, Http11, Http20};
 use HttpError::{HttpHeaderError, HttpIoError, HttpMethodError, HttpStatusError,
@@ -433,7 +435,10 @@ pub fn read_uri<R: Reader>(stream: &mut R) -> HttpResult<uri::RequestUri> {
     debug!("uri buf = {:?}", s);
 
     if s.as_slice().starts_with("/") {
-        Ok(AbsolutePath(s))
+        match url::parse_path(s.as_slice()) {
+            Ok((p,q,f)) => Ok(AbsolutePath(PathQueryFragment { path: p, query: q, fragment: f })),
+            Err(e) => Err(HttpUriError(e))
+        }
     } else if s.as_slice().contains("/") {
         Ok(AbsoluteUri(try!(Url::parse(s.as_slice()))))
     } else {
@@ -702,6 +707,7 @@ mod tests {
     use test::Bencher;
     use uri::RequestUri;
     use uri::RequestUri::{Star, AbsoluteUri, AbsolutePath, Authority};
+    use uri::PathQueryFragment;
     use method;
     use version::HttpVersion;
     use version::HttpVersion::{Http10, Http11, Http20};
@@ -744,7 +750,7 @@ mod tests {
         read("* ", Ok(Star));
         read("http://hyper.rs/ ", Ok(AbsoluteUri(Url::parse("http://hyper.rs/").unwrap())));
         read("hyper.rs ", Ok(Authority("hyper.rs".to_string())));
-        read("/ ", Ok(AbsolutePath("/".to_string())));
+        read("/ ", Ok(AbsolutePath(PathQueryFragment { path: vec![], query: None, fragment: None})));
     }
 
     #[test]
