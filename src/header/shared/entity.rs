@@ -86,37 +86,13 @@ mod tests {
     use super::EntityTag;
 
     #[test]
-    fn test_etag_successes() {
-        // Expected successes
-        let mut etag : EntityTag = "\"foobar\"".parse().unwrap();
-        assert_eq!(etag, (EntityTag {
-            weak: false,
-            tag: "foobar".to_string()
-        }));
-
-        etag = "\"\"".parse().unwrap();
-        assert_eq!(etag, EntityTag {
-            weak: false,
-            tag: "".to_string()
-        });
-
-        etag = "W/\"weak-etag\"".parse().unwrap();
-        assert_eq!(etag, EntityTag {
-            weak: true,
-            tag: "weak-etag".to_string()
-        });
-
-        etag = "W/\"\x65\x62\"".parse().unwrap();
-        assert_eq!(etag, EntityTag {
-            weak: true,
-            tag: "\u{0065}\u{0062}".to_string()
-        });
-
-        etag = "W/\"\"".parse().unwrap();
-        assert_eq!(etag, EntityTag {
-            weak: true,
-            tag: "".to_string()
-        });
+    fn test_etag_parse_success() {
+        // Expected success
+        assert_eq!("\"foobar\"".parse::<EntityTag>().unwrap(), EntityTag::new(false, "foobar".to_string()));
+        assert_eq!("\"\"".parse::<EntityTag>().unwrap(), EntityTag::new(false, "".to_string()));
+        assert_eq!("W/\"weaktag\"".parse::<EntityTag>().unwrap(), EntityTag::new(true, "weaktag".to_string()));
+        assert_eq!("W/\"\x65\x62\"".parse::<EntityTag>().unwrap(), EntityTag::new(true, "\x65\x62".to_string()));
+        assert_eq!("W/\"\"".parse::<EntityTag>().unwrap(), EntityTag::new(true, "".to_string()));
     }
 
     #[test]
