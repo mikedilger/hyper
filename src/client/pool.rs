@@ -154,6 +154,11 @@ impl<S: NetworkStream> NetworkStream for PooledStream<S> {
     }
 
     #[inline]
+    fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
+        self.inner.as_ref().unwrap().1.set_nodelay(nodelay)
+    }
+
+    #[inline]
     fn close(&mut self, how: Shutdown) -> io::Result<()> {
         self.is_closed = true;
         self.inner.as_mut().unwrap().1.close(how)

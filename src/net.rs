@@ -53,6 +53,8 @@ impl<'a, N: NetworkListener + 'a> Iterator for NetworkConnections<'a, N> {
 pub trait NetworkStream: Read + Write + Any + Send + Typeable {
     /// Get the remote address of the underlying connection.
     fn peer_addr(&mut self) -> io::Result<SocketAddr>;
+    /// Set the nodelay flag on the Stream
+    fn set_nodelay(&self, nodelay: bool) -> io::Result<()>;
     /// This will be called when Stream should no longer be kept alive.
     #[inline]
     fn close(&mut self, _how: Shutdown) -> io::Result<()> {
@@ -209,6 +211,11 @@ impl NetworkStream for HttpStream {
     }
 
     #[inline]
+    fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
+        self.0.set_nodelay(nodelay)
+    }
+
+    #[inline]
     fn close(&mut self, how: Shutdown) -> io::Result<()> {
         match self.0.shutdown(how) {
             Ok(_) => Ok(()),
@@ -295,6 +302,14 @@ impl<S: NetworkStream> NetworkStream for HttpsStream<S> {
         match *self {
             HttpsStream::Http(ref mut s) => s.peer_addr(),
             HttpsStream::Https(ref mut s) => s.peer_addr()
+        }
+    }
+
+    #[inline]
+    fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
+        match *self {
+            HttpsStream::Http(ref s) => s.set_nodelay(nodelay),
+            HttpsStream::Https(ref s) => s.set_nodelay(nodelay),
         }
     }
 
@@ -462,6 +477,11 @@ mod openssl {
         #[inline]
         fn peer_addr(&mut self) -> io::Result<SocketAddr> {
             self.get_mut().peer_addr()
+        }
+
+        #[inline]
+        fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
+            self.set_nodelay(nodelay)
         }
 
         fn close(&mut self, how: Shutdown) -> io::Result<()> {

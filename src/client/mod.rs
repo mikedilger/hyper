@@ -111,10 +111,21 @@ impl Client {
     }
 
     /// Create a new client with a specific `Protocol`.
+    #[cfg(not(feature = "timeouts"))]
     pub fn with_protocol<P: Protocol + Send + Sync + 'static>(protocol: P) -> Client {
         Client {
             protocol: Box::new(protocol),
-            redirect_policy: Default::default()
+            redirect_policy: Default::default(),
+        }
+    }
+
+    /// Create a new client with a specific `Protocol`.
+    #[cfg(feature = "timeouts")]
+    pub fn with_protocol<P: Protocol + Send + Sync + 'static>(protocol: P) -> Client {
+        Client {
+            protocol: Box::new(protocol),
+            redirect_policy: Default::default(),
+            read_timeout: None,
         }
     }
 

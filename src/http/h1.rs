@@ -4,6 +4,8 @@ use std::cmp::min;
 use std::fmt;
 use std::io::{self, Write, BufWriter, BufRead, Read};
 use std::net::Shutdown;
+#[cfg(feature = "timeouts")]
+use std::time::Duration;
 
 use httparse;
 
@@ -190,6 +192,11 @@ impl HttpMessage for Http11Message {
             raw_status: raw_status,
             version: head.version,
         })
+    }
+
+    #[cfg(feature = "timeouts")]
+    fn set_read_timeout(&self, dur: Option<Duration>) -> ::Result<()> {
+        self.get_mut().set_read_timeout(dur)
     }
 
     fn close_connection(&mut self) -> ::Result<()> {
