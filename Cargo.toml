@@ -43,3 +43,4 @@ env_logger = "*"
 default = ["ssl"]
 ssl = ["openssl", "cookie/secure"]
 nightly = []
+timeouts = []

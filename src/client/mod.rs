@@ -58,6 +58,8 @@
 use std::default::Default;
 use std::io::{self, copy, Read};
 use std::iter::Extend;
+#[cfg(feature = "timeouts")]
+use std::time::Duration;
 
 use url::UrlParser;
 use url::ParseError as UrlError;

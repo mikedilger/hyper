@@ -4,6 +4,8 @@
 use std::fmt::Debug;
 use std::any::{Any, TypeId};
 use std::io::{Read, Write};
+#[cfg(feature = "timeouts")]
+use std::time::Duration;
 
 use std::mem;
 
